@@ -22,7 +22,7 @@ const path = simplifySvgPath(points);
 ### CDN ([jsDelivr](https://www.jsdelivr.com/package/npm/@luncheon/simplify-svg-path))
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@luncheon/simplify-svg-path@0.1.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@luncheon/simplify-svg-path@0.1.1"></script>
 <script>
   const path = simplifySvgPath([[10, 10], [10, 20], [20, 20]]);
 </script>
@@ -45,5 +45,5 @@ simplifySvgPath(
 
 ## Note
 
-The logic is a copy of [Paper.js](https://github.com/paperjs/paper.js) v0.12.11.  
-If you like this, please send your thanks and the star to Paper.js.
+The logic is a copy of Paper.js v0.12.11.  
+If you like this, please send your thanks and the star to [Paper.js](https://github.com/paperjs/paper.js).
