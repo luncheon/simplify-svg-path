@@ -6,7 +6,7 @@
   "main": "index.js",
   "jsdelivr": "index.iife.min.js",
   "unpkg": "index.iife.min.js",
-  "keywords": [],
+  "keywords": ["paper", "paper.js", "svg", "path"],
   "prettier": {
     "printWidth": 140,
     "endOfLine": "lf",
