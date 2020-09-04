@@ -4,10 +4,22 @@
   "description": "Extracts Path#simplify() from Paper.js.",
   "license": "MIT",
   "repository": "luncheon/simplify-svg-path",
+  "files": [
+    "index.js",
+    "index.ts",
+    "index.d.ts",
+    "index.iife.min.js",
+    "index.min.js"
+  ],
   "main": "index.js",
   "jsdelivr": "index.iife.min.js",
   "unpkg": "index.iife.min.js",
-  "keywords": ["paper", "paper.js", "svg", "path"],
+  "keywords": [
+    "paper",
+    "paper.js",
+    "svg",
+    "path"
+  ],
   "prettier": {
     "printWidth": 140,
     "endOfLine": "lf",
