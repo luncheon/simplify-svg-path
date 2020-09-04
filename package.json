@@ -2,7 +2,6 @@
   "name": "@luncheon/simplify-svg-path",
   "version": "0.1.0",
   "description": "Extracts Path#simplify() from Paper.js.",
-  "private": true,
   "license": "MIT",
   "main": "index.js",
   "jsdelivr": "index.iife.min.js",

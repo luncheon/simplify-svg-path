@@ -45,5 +45,5 @@ simplifySvgPath(
 
 ## Note
 
-The logic is a copy of Paper.js v0.12.11.  
+The logic is a copy of [Paper.js](https://github.com/paperjs/paper.js) v0.12.11.  
 If you like this, please send your thanks and the star to Paper.js.
