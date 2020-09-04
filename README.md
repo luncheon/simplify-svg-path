@@ -1,0 +1,49 @@
+# simplify-svg-path
+
+Extracts `Path#simplify()` from Paper.js.  
+http://paperjs.org/reference/path/#simplify
+
+## Installation & Usage
+
+### npm
+
+```bash
+$ npm i @luncheon/simplify-svg-path
+```
+
+```javascript
+import simplifySvgPath from '@luncheon/simplify-svg-path'
+
+const points = [[10, 10], [10, 20], [20, 20]];
+const path = simplifySvgPath(points);
+// "M10,10c0,3.33333 -2.35702,7.64298 0,10c2.35702,2.35702 6.66667,0 10,0"
+```
+
+### CDN (jsDelivr)
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@luncheon/simplify-svg-path@0.1.0"></script>
+<script>
+  const path = simplifySvgPath([[10, 10], [10, 20], [20, 20]]);
+</script>
+```
+
+## API
+
+```typescript
+simplifySvgPath(
+  points: [x: number, y: number][],
+  {
+    tolerance: number = 2.5,
+    precision: number = 5,
+  } = {}
+): string
+
+// SVG path command string such as
+// "M10,10c0,3.33333 -2.35702,7.64298 0,10c2.35702,2.35702 6.66667,0 10,0"
+```
+
+## Note
+
+The logic is a copy of Paper.js v0.12.11.  
+If you like this, please send your thanks and the star to Paper.js.
