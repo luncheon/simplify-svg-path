@@ -52,15 +52,15 @@
     <style id="display-style"></style>
   </head>
   <body>
-    <header style="position: absolute; left: 16px; top: 16px; pointer-events: none;">
-      <h1 style="margin-bottom: .5em;">simplify-svg-path demo</h1>
+    <header style="position: absolute; left: 16px; top: 16px; right: 40px; pointer-events: none;">
+      <h1 style="margin-bottom: .5em; font-size: 1.75rem;">simplify-svg-path demo</h1>
       <p>Drag to draw. Open the development tools and compare the original path to the simplified path.</p>
     </header>
 
     <svg width="100%" height="100%" fill="none" stroke-linecap="round" style="cursor: crosshair;"></svg>
 
-    <aside style="position: absolute; right: 16px; top: 0; bottom: 0; display: flex; align-items: center;">
-      <table>
+    <aside style="position: absolute; right: 16px; top: 0; bottom: 0; display: flex; align-items: center; pointer-events: none;">
+      <table style="pointer-events: auto;">
         <tr>
           <td>Tolerance</td>
           <td><input type="number" name="tolerance" value="2.5" min="0" step="0.5"></td>
@@ -114,11 +114,11 @@
           points = [[event.offsetX, event.offsetY]]
           originalPath = this.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'path'))
           simplifiedPath = this.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'path'))
-          originalPath.setAttribute('d', 'M' + round(event.offsetX) + ',' + round(event.offsetY))
           originalPath.setAttribute('class', 'original')
           simplifiedPath.setAttribute('class', 'simplified')
           originalPath.setAttribute('stroke-width', inputStrokeWidth.value)
           simplifiedPath.setAttribute('stroke-width', inputStrokeWidth.value)
+          originalPath.setAttribute('d', 'M' + round(event.offsetX) + ',' + round(event.offsetY))
           this.setPointerCapture(event.pointerId)
         }
         svg.onpointermove = function (event) {
