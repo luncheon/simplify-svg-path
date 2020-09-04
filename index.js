@@ -93,7 +93,7 @@ class PathFitter {
         }
         const length = points.length;
         if (length === 0) {
-            return;
+            return [];
         }
         // To support reducing paths with multiple points in the same place
         // to one segment:
@@ -283,9 +283,6 @@ class PathFitter {
     }
 }
 const getSegmentsPathData = (segments, closed, precision) => {
-    if (!segments) {
-        return;
-    }
     const length = segments.length;
     const f = new Formatter(precision);
     let first = true;
