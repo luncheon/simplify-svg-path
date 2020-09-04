@@ -5,7 +5,7 @@ http://paperjs.org/reference/path/#simplify
 
 ## Installation & Usage
 
-### npm
+### [npm](https://www.npmjs.com/package/@luncheon/simplify-svg-path)
 
 ```bash
 $ npm i @luncheon/simplify-svg-path
@@ -19,7 +19,7 @@ const path = simplifySvgPath(points);
 // "M10,10c0,3.33333 -2.35702,7.64298 0,10c2.35702,2.35702 6.66667,0 10,0"
 ```
 
-### CDN (jsDelivr)
+### CDN ([jsDelivr](https://www.jsdelivr.com/package/npm/@luncheon/simplify-svg-path))
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@luncheon/simplify-svg-path@0.1.0"></script>
