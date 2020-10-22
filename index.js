@@ -87,7 +87,7 @@ class PathFitter {
         const points = this.points;
         // We need to duplicate the first and last segment when simplifying a
         // closed path.
-        if (closed) {
+        if (this.closed) {
             points.unshift(points[points.length - 1]);
             points.push(points[1]); // The point previously at index 0 is now 1.
         }
@@ -327,4 +327,4 @@ const getSegmentsPathData = (segments, closed, precision) => {
     }
     return parts.join('');
 };
-export default (points, options = {}) => getSegmentsPathData(new PathFitter(points.map(p => new Point(p[0], p[1])), options.closed).fit(options.tolerance ?? 2.5), closed, options.precision ?? 5);
+export default (points, options = {}) => getSegmentsPathData(new PathFitter(points.map(p => new Point(p[0], p[1])), options.closed).fit(options.tolerance ?? 2.5), options.closed, options.precision ?? 5);
