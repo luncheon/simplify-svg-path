@@ -1,6 +1,6 @@
 {
   "name": "@luncheon/simplify-svg-path",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Extracts Path#simplify() from Paper.js.",
   "license": "MIT",
   "repository": "luncheon/simplify-svg-path",
