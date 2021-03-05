@@ -6,7 +6,6 @@
   "repository": "luncheon/simplify-svg-path",
   "files": [
     "index.js",
-    "index.ts",
     "index.d.ts",
     "index.iife.min.js",
     "index.min.js"
