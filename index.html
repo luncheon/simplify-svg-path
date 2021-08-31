@@ -69,19 +69,29 @@
         cursor: crosshair;
       }
       .original {
-        stroke: hsla(220,100%,50%,.4);
+        stroke: hsla(0,0%,50%,.5);
       }
-      .simplified {
+      .simplify-svg-path {
         stroke: hsla(0,100%,50%,.4);
       }
+      .simplify-js {
+        stroke: hsla(220,100%,55%,.4);
+      }
+      .simplify2 {
+        stroke: hsla(60,100%,45%,.5);
+      }
     </style>
-    <style id="display-style"></style>
+    <style id="style-original"></style>
+    <style id="style-simplify-svg-path"></style>
+    <style id="style-simplify-js">.simplify-js{display:none}</style>
+    <style id="style-simplify2">.simplify2{display:none}</style>
   </head>
   <body>
-    <svg id="doodle"></svg>
+    <svg id="doodle" stroke-width="5"></svg>
 
     <header>
       <h1 style="margin-bottom: .5em; font-size: 1.75rem;">simplify-svg-path demo</h1>
+      <p>Simplifies and smooths SVG &lt;path&gt;s.</p>
       <p>Drag to draw. Open the development tools and compare the original path to the simplified path.</p>
     </header>
 
@@ -89,30 +99,34 @@
       <table>
         <tr>
           <td>Tolerance</td>
-          <td><input type="number" name="tolerance" value="2.5" min="0" step="0.5"></td>
+          <td><input type="number" name="tolerance" value="2.5" min="0" step="0.5" onchange="onChangePreferences()"></td>
         </tr>
         <tr>
           <td>Precision</td>
-          <td><input type="number" name="precision" value="0" min="0"></td>
+          <td><input type="number" name="precision" value="0" min="0" onchange="onChangePreferences()"></td>
         </tr>
         <tr>
           <td>Stroke Width</td>
-          <td><input type="number" name="stroke-width" value="5" min="0"></td>
+          <td><input type="number" name="stroke-width" value="5" min="0" onchange="document.querySelector('#doodle').setAttribute('stroke-width',this.value)"></td>
         </tr>
         <tr>
           <td>Display</td>
           <td>
             <label>
-              <input type="radio" name="display" value="original">
+              <input type="checkbox" checked onchange="document.getElementById('style-original').textContent=this.checked?'':'.original{display:none}'">
               Original
             </label>
-              <label>
-              <input type="radio" name="display" value="simplified">
-              Simplified
+            <label>
+              <input type="checkbox" checked onchange="document.getElementById('style-simplify-svg-path').textContent=this.checked?'':'.simplify-svg-path{display:none}'">
+              simplify-svg-path (this library)
             </label>
             <label>
-              <input type="radio" name="display" value="original+simplified" checked>
-              Both
+              <input type="checkbox" onchange="document.getElementById('style-simplify-js').textContent=this.checked?'':'.simplify-js{display:none}'">
+              <a target="_blank" rel="noopener noreferrer" href="https://mourner.github.io/simplify-js/">Simplify.js</a>
+            </label>
+            <label>
+              <input type="checkbox" onchange="document.getElementById('style-simplify2').textContent=this.checked?'':'.simplify2{display:none}'">
+              Simplify.js + simplify-svg-path
             </label>
           </td>
         </tr>
@@ -124,52 +138,60 @@
     </aside>
 
     <script src="https://cdn.jsdelivr.net/npm/@luncheon/simplify-svg-path@0.1.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simplify-js@1.2.4"></script>
     <script>
       (function () {
         const svg = document.getElementById('doodle')
         const inputTolerance = document.getElementsByName('tolerance')[0]
         const inputPrecision = document.getElementsByName('precision')[0]
-        const inputStrokeWidth = document.getElementsByName('stroke-width')[0]
         function round(value) {
           return value.toFixed(inputPrecision.valueAsNumber)
         }
-        let points = []
-        let originalPath
-        let simplifiedPath
-        svg.onpointerdown = function (event) {
-          points = [[event.offsetX, event.offsetY]]
-          originalPath = this.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'path'))
-          simplifiedPath = this.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'path'))
-          originalPath.setAttribute('class', 'original')
-          simplifiedPath.setAttribute('class', 'simplified')
-          originalPath.setAttribute('stroke-width', inputStrokeWidth.value)
-          simplifiedPath.setAttribute('stroke-width', inputStrokeWidth.value)
-          originalPath.setAttribute('d', 'M' + round(event.offsetX) + ',' + round(event.offsetY))
-          this.setPointerCapture(event.pointerId)
+        function appendPath(className) {
+          const path = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'path'))
+          path.setAttribute('class', className)
+          return path
         }
-        svg.onpointermove = function (event) {
-          if (this.hasPointerCapture(event.pointerId)) {
-            points.push([event.offsetX, event.offsetY])
-            originalPath.setAttribute('d', originalPath.getAttribute('d') + 'L' + round(event.offsetX) + ',' + round(event.offsetY))
-            simplifiedPath.setAttribute('d', simplifySvgPath(points, { tolerance: inputTolerance.valueAsNumber, precision: inputPrecision.valueAsNumber }))
+        function pointsToPath(points) {
+          return 'M' + points.map(function (p) { return round(p.x || p[0] || 0) + ',' + round(p.y || p[1] || 0) }).join('L')
+        }
+        const pastPoints = []
+        {
+          let points
+          let originalPath
+          let simplifySvgPathPath
+          let simplifyJsPath
+          let simplify2Path
+          svg.onpointerdown = function (event) {
+            points = [[event.offsetX, event.offsetY]]
+            pastPoints.push(points)
+            originalPath = appendPath('original')
+            simplifySvgPathPath = appendPath('simplify-svg-path')
+            simplifyJsPath = appendPath('simplify-js')
+            simplify2Path = appendPath('simplify2')
+            this.setPointerCapture(event.pointerId)
           }
-        }
-        document.body.addEventListener('change', function (event) {
-          if (event.target.checked && event.target.name === 'display') {
-            const style = document.getElementById('display-style')
-            switch (event.target.value) {
-              case 'original':
-                style.textContent = '.simplified{display:none}'
-                break
-              case 'simplified':
-                style.textContent = '.original{display:none}'
-                break
-              case 'original+simplified':
-                style.textContent = ''
-                break
+          svg.onpointermove = function (event) {
+            if (this.hasPointerCapture(event.pointerId)) {
+              points.push([event.offsetX, event.offsetY])
+              originalPath.setAttribute('d', pointsToPath(points))
+              simplifySvgPathPath.setAttribute('d', simplifySvgPath(points, { tolerance: inputTolerance.valueAsNumber, precision: inputPrecision.valueAsNumber }))
+              const simplifyJsApplied = simplify(points.map(function (p) { return { x: p[0], y: p[1] } }, inputTolerance.valueAsNumber), true)
+              simplifyJsPath.setAttribute('d', pointsToPath(simplifyJsApplied))
+              simplify2Path.setAttribute('d', simplifySvgPath(simplifyJsApplied.map(function (p) { return [p.x, p.y] }), { tolerance: inputTolerance.valueAsNumber, precision: inputPrecision.valueAsNumber }))
             }
           }
-        })
+        }
+        window.onChangePreferences = function () {
+          svg.innerHTML = ''
+          pastPoints.forEach(function (points) {
+            appendPath('original').setAttribute('d', pointsToPath(points))
+            appendPath('simplify-svg-path').setAttribute('d', simplifySvgPath(points, { tolerance: inputTolerance.valueAsNumber, precision: inputPrecision.valueAsNumber }))
+            const simplifyJsApplied = simplify(points.map(function (p) { return { x: p[0], y: p[1] } }, inputTolerance.valueAsNumber), true)
+            appendPath('simplify-js').setAttribute('d', pointsToPath(simplifyJsApplied))
+            appendPath('simplify2').setAttribute('d', simplifySvgPath(simplifyJsApplied.map(function (p) { return [p.x, p.y] }), { tolerance: inputTolerance.valueAsNumber, precision: inputPrecision.valueAsNumber }))
+          })
+        }
       })()
     </script>
 
