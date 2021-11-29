@@ -307,4 +307,5 @@ const getSegmentsPathData = (segments, closed, precision) => {
     }
     return parts.join('');
 };
-export default (points, options = {}) => getSegmentsPathData(fit(points.map(p => new Point(p[0], p[1])), options.closed, options.tolerance ?? 2.5), options.closed, options.precision ?? 5);
+const simplifySvgPath = (points, options = {}) => getSegmentsPathData(fit(points.map(p => new Point(p[0], p[1])), options.closed, options.tolerance ?? 2.5), options.closed, options.precision ?? 5);
+export default simplifySvgPath;

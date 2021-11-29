@@ -359,7 +359,7 @@ const getSegmentsPathData = (segments: Segment[], closed: unknown, precision: nu
   return parts.join('')
 }
 
-export default (
+const simplifySvgPath = (
   points: readonly (readonly [number, number])[],
   options: { closed?: boolean; tolerance?: number; precision?: number } = {},
 ) =>
@@ -372,3 +372,5 @@ export default (
     options.closed,
     options.precision ?? 5,
   )
+
+export default simplifySvgPath
