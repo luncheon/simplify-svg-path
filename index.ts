@@ -360,17 +360,23 @@ const getSegmentsPathData = (segments: Segment[], closed: unknown, precision: nu
 }
 
 const simplifySvgPath = (
-  points: readonly (readonly [number, number])[],
+  points: readonly (readonly [number, number])[] | { readonly x: number; readonly y: number }[],
   options: { closed?: boolean; tolerance?: number; precision?: number } = {},
-) =>
-  getSegmentsPathData(
+) => {
+  if (points.length === 0) {
+    return ''
+  }
+  return getSegmentsPathData(
     fit(
-      points.map(p => new Point(p[0], p[1])),
+      points.map(
+        typeof (points[0] as { readonly x: number }).x === 'number' ? (p: any) => new Point(p.x, p.y) : (p: any) => new Point(p[0], p[1]),
+      ),
       options.closed,
       options.tolerance ?? 2.5,
     ),
     options.closed,
     options.precision ?? 5,
   )
+}
 
 export default simplifySvgPath

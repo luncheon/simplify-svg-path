@@ -307,5 +307,10 @@ const getSegmentsPathData = (segments, closed, precision) => {
     }
     return parts.join('');
 };
-const simplifySvgPath = (points, options = {}) => getSegmentsPathData(fit(points.map(p => new Point(p[0], p[1])), options.closed, options.tolerance ?? 2.5), options.closed, options.precision ?? 5);
+const simplifySvgPath = (points, options = {}) => {
+    if (points.length === 0) {
+        return '';
+    }
+    return getSegmentsPathData(fit(points.map(typeof points[0].x === 'number' ? (p) => new Point(p.x, p.y) : (p) => new Point(p[0], p[1])), options.closed, options.tolerance ?? 2.5), options.closed, options.precision ?? 5);
+};
 export default simplifySvgPath;

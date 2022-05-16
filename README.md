@@ -30,9 +30,9 @@ const path = simplifySvgPath(points);
 
 ## API
 
-```typescript
+```ts
 simplifySvgPath(
-  points: [x: number, y: number][],
+  points: [x: number, y: number][], // `{ x: number, y: number }[]` is also acceptable
   {
     tolerance: number = 2.5,
     precision: number = 5,
