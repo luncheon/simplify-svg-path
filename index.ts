@@ -52,6 +52,7 @@ class Point {
   }
 
   _getLength() {
+    // `Math.sqrt(x * x + y * y)` is faster than `Math.hypot(x, y)`
     return Math.sqrt(this.x * this.x + this.y * this.y)
   }
 

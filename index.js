@@ -45,6 +45,7 @@ class Point {
         return this.x * p.x + this.y * p.y;
     }
     _getLength() {
+        // `Math.sqrt(x * x + y * y)` is faster than `Math.hypot(x, y)`
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
     _getDistance(p) {
