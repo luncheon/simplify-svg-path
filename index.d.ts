@@ -1,7 +1,8 @@
-declare const simplifySvgPath: (points: readonly (readonly [number, number])[] | {
+interface Point {
     readonly x: number;
     readonly y: number;
-}[], options?: {
+}
+declare const simplifySvgPath: (points: readonly (readonly [number, number])[] | readonly Point[], options?: {
     closed?: boolean;
     tolerance?: number;
     precision?: number;

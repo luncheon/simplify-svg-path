@@ -24,50 +24,29 @@ const EPSILON = 1e-12
 const MACHINE_EPSILON = 1.12e-16
 const isMachineZero = (val: number) => val >= -MACHINE_EPSILON && val <= MACHINE_EPSILON
 
-class Point {
-  constructor(readonly x: number, readonly y: number) {}
+// `Math.sqrt(x * x + y * y)` seems to be faster than `Math.hypot(x, y)`
+const hypot = (x: number, y: number) => Math.sqrt(x * x + y * y)
 
-  _negate(): Point {
-    return new Point(-this.x, -this.y)
-  }
-
-  _normalize(length = 1) {
-    return this._multiply(length / (this._getLength() || Infinity))
-  }
-
-  _add(p: Point): Point {
-    return new Point(this.x + p.x, this.y + p.y)
-  }
-
-  _subtract(p: Point): Point {
-    return new Point(this.x - p.x, this.y - p.y)
-  }
-
-  _multiply(n: number): Point {
-    return new Point(this.x * n, this.y * n)
-  }
-
-  _dot(p: Point): number {
-    return this.x * p.x + this.y * p.y
-  }
-
-  _getLength() {
-    // `Math.sqrt(x * x + y * y)` is faster than `Math.hypot(x, y)`
-    return Math.sqrt(this.x * this.x + this.y * this.y)
-  }
-
-  _getDistance(p: Point): number {
-    const dx = this.x - p.x
-    const dy = this.y - p.y
-    return Math.sqrt(dx * dx + dy * dy)
-  }
+interface Point {
+  readonly x: number
+  readonly y: number
 }
+const point = (x: number, y: number) => ({ x, y })
+const pointLength = (p: Point) => hypot(p.x, p.y)
+const pointNegate = (p: Point) => point(-p.x, -p.y)
+const pointAdd = (p1: Point, p2: Point) => point(p1.x + p2.x, p1.y + p2.y)
+const pointSubtract = (p1: Point, p2: Point) => point(p1.x - p2.x, p1.y - p2.y)
+const pointMultiplyScalar = (p: Point, n: number) => point(p.x * n, p.y * n)
+const pointDot = (p1: Point, p2: Point) => p1.x * p2.x + p1.y * p2.y
+const pointDistance = (p1: Point, p2: Point) => hypot(p1.x - p2.x, p1.y - p2.y)
+const pointNormalize = (p: Point, length = 1) => pointMultiplyScalar(p, length / (pointLength(p) || Infinity))
 
-class Segment {
-  _handleOut?: Point
-
-  constructor(readonly _point: Point, readonly _handleIn?: Point) {}
+interface Segment {
+  readonly p: Point
+  readonly i?: Point // handleIn
+  o?: Point // handleOut
 }
+const createSegment = (p: Point, i?: Point) => ({ p, i })
 
 const fit = (points: Point[], closed: unknown, error: number) => {
   // We need to duplicate the first and last segment when simplifying a
@@ -82,7 +61,7 @@ const fit = (points: Point[], closed: unknown, error: number) => {
   }
   // To support reducing paths with multiple points in the same place
   // to one segment:
-  const segments = [new Segment(points[0])]
+  const segments = [createSegment(points[0])]
   fitCubic(
     points,
     segments,
@@ -90,9 +69,9 @@ const fit = (points: Point[], closed: unknown, error: number) => {
     0,
     length - 1,
     // Left Tangent
-    points[1]._subtract(points[0]),
+    pointSubtract(points[1], points[0]),
     // Right Tangent
-    points[length - 2]._subtract(points[length - 1]),
+    pointSubtract(points[length - 2], points[length - 1]),
   )
   // Remove the duplicated segments for closed paths again.
   if (closed) {
@@ -108,8 +87,8 @@ const fitCubic = (points: readonly Point[], segments: Segment[], error: number, 
   if (last - first === 1) {
     const pt1 = points[first],
       pt2 = points[last],
-      dist = pt1._getDistance(pt2) / 3
-    addCurve(segments, [pt1, pt1._add(tan1._normalize(dist)), pt2._add(tan2._normalize(dist)), pt2])
+      dist = pointDistance(pt1, pt2) / 3
+    addCurve(segments, [pt1, pointAdd(pt1, pointNormalize(tan1, dist)), pointAdd(pt2, pointNormalize(tan2, dist)), pt2])
     return
   }
   // Parameterize points, and attempt to fit curve
@@ -133,15 +112,15 @@ const fitCubic = (points: readonly Point[], segments: Segment[], error: number, 
     maxError = max.error
   }
   // Fitting failed -- split at max error point and fit recursively
-  const tanCenter = points[split! - 1]._subtract(points[split! + 1])
+  const tanCenter = pointSubtract(points[split! - 1], points[split! + 1])
   fitCubic(points, segments, error, first, split!, tan1, tanCenter)
-  fitCubic(points, segments, error, split!, last, tanCenter._negate(), tan2)
+  fitCubic(points, segments, error, split!, last, pointNegate(tanCenter), tan2)
 }
 
 const addCurve = (segments: Segment[], curve: readonly Point[]) => {
   const prev = segments[segments.length - 1]
-  prev._handleOut = curve[1]._subtract(curve[0])
-  segments.push(new Segment(curve[3], curve[2]._subtract(curve[3])))
+  prev.o = pointSubtract(curve[1], curve[0])
+  segments.push(createSegment(curve[3], pointSubtract(curve[2], curve[3])))
 }
 
 // Use least-squares method to find Bezier control points for region.
@@ -165,16 +144,16 @@ const generateBezier = (points: readonly Point[], first: number, last: number, u
       b1 = b * t,
       b2 = b * u,
       b3 = u * u * u,
-      a1 = tan1._normalize(b1),
-      a2 = tan2._normalize(b2),
-      tmp = points[first + i]._subtract(pt1._multiply(b0 + b1))._subtract(pt2._multiply(b2 + b3))
-    C[0][0] += a1._dot(a1)
-    C[0][1] += a1._dot(a2)
+      a1 = pointNormalize(tan1, b1),
+      a2 = pointNormalize(tan2, b2),
+      tmp = pointSubtract(pointSubtract(points[first + i], pointMultiplyScalar(pt1, b0 + b1)), pointMultiplyScalar(pt2, b2 + b3))
+    C[0][0] += pointDot(a1, a1)
+    C[0][1] += pointDot(a1, a2)
     // C[1][0] += a1.dot(a2);
     C[1][0] = C[0][1]
-    C[1][1] += a2._dot(a2)
-    X[0] += a1._dot(tmp)
-    X[1] += a2._dot(tmp)
+    C[1][1] += pointDot(a2, a2)
+    X[0] += pointDot(a1, tmp)
+    X[1] += pointDot(a2, tmp)
   }
 
   // Compute the determinants of C and X
@@ -198,7 +177,7 @@ const generateBezier = (points: readonly Point[], first: number, last: number, u
   // If alpha negative, use the Wu/Barsky heuristic (see text)
   // (if alpha is 0, you get coincident control points that lead to
   // divide by zero in any subsequent NewtonRaphsonRootFind() call.
-  const segLength = pt2._getDistance(pt1),
+  const segLength = pointDistance(pt2, pt1),
     eps = epsilon * segLength
   let handle1, handle2
   if (alpha1 < eps || alpha2 < eps) {
@@ -208,12 +187,12 @@ const generateBezier = (points: readonly Point[], first: number, last: number, u
   } else {
     // Check if the found control points are in the right order when
     // projected onto the line through pt1 and pt2.
-    const line = pt2._subtract(pt1)
+    const line = pointSubtract(pt2, pt1)
     // Control points 1 and 2 are positioned an alpha distance out
     // on the tangent vectors, left and right, respectively
-    handle1 = tan1._normalize(alpha1)
-    handle2 = tan2._normalize(alpha2)
-    if (handle1._dot(line) - handle2._dot(line) > segLength * segLength) {
+    handle1 = pointNormalize(tan1, alpha1)
+    handle2 = pointNormalize(tan2, alpha2)
+    if (pointDot(handle1, line) - pointDot(handle2, line) > segLength * segLength) {
       // Fall back to the Wu/Barsky heuristic above.
       alpha1 = alpha2 = segLength / 3
       handle1 = handle2 = null // Force recalculation
@@ -222,7 +201,7 @@ const generateBezier = (points: readonly Point[], first: number, last: number, u
 
   // First and last control points of the Bezier curve are
   // positioned exactly at the first and last data points
-  return [pt1, pt1._add(handle1 || tan1._normalize(alpha1)), pt2._add(handle2 || tan2._normalize(alpha2)), pt2]
+  return [pt1, pointAdd(pt1, handle1 || pointNormalize(tan1, alpha1)), pointAdd(pt2, handle2 || pointNormalize(tan2, alpha2)), pt2]
 }
 
 // Given set of points and their parameterization, try to find
@@ -245,20 +224,20 @@ const findRoot = (curve: readonly Point[], point: Point, u: number) => {
     curve2 = []
   // Generate control vertices for Q'
   for (let i = 0; i <= 2; i++) {
-    curve1[i] = curve[i + 1]._subtract(curve[i])._multiply(3)
+    curve1[i] = pointMultiplyScalar(pointSubtract(curve[i + 1], curve[i]), 3)
   }
   // Generate control vertices for Q''
   for (let i = 0; i <= 1; i++) {
-    curve2[i] = curve1[i + 1]._subtract(curve1[i])._multiply(2)
+    curve2[i] = pointMultiplyScalar(pointSubtract(curve1[i + 1], curve1[i]), 2)
   }
   // Compute Q(u), Q'(u) and Q''(u)
   const pt = evaluate(3, curve, u),
     pt1 = evaluate(2, curve1, u),
     pt2 = evaluate(1, curve2, u),
-    diff = pt._subtract(point),
-    df = pt1._dot(pt1) + diff._dot(pt2)
+    diff = pointSubtract(pt, point),
+    df = pointDot(pt1, pt1) + pointDot(diff, pt2)
   // u = u - f(u) / f'(u)
-  return isMachineZero(df) ? u : u - diff._dot(pt1) / df
+  return isMachineZero(df) ? u : u - pointDot(diff, pt1) / df
 }
 
 // Evaluate a bezier curve at a particular parameter value
@@ -268,7 +247,7 @@ const evaluate = (degree: number, curve: readonly Point[], t: number) => {
   // Triangle computation
   for (let i = 1; i <= degree; i++) {
     for (let j = 0; j <= degree - i; j++) {
-      tmp[j] = tmp[j]._multiply(1 - t)._add(tmp[j + 1]._multiply(t))
+      tmp[j] = pointAdd(pointMultiplyScalar(tmp[j], 1 - t), pointMultiplyScalar(tmp[j + 1], t))
     }
   }
   return tmp[0]
@@ -279,7 +258,7 @@ const evaluate = (degree: number, curve: readonly Point[], t: number) => {
 const chordLengthParameterize = (points: readonly Point[], first: number, last: number) => {
   const u = [0]
   for (let i = first + 1; i <= last; i++) {
-    u[i - first] = u[i - first - 1] + points[i]._getDistance(points[i - 1])
+    u[i - first] = u[i - first - 1] + pointDistance(points[i], points[i - 1])
   }
   for (let i = 1, m = last - first; i <= m; i++) {
     u[i] /= u[m]
@@ -293,7 +272,7 @@ const findMaxError = (points: readonly Point[], first: number, last: number, cur
     maxDist = 0
   for (let i = first + 1; i < last; i++) {
     const P = evaluate(3, curve, u[i - first])
-    const v = P._subtract(points[i])
+    const v = pointSubtract(P, points[i])
     const dist = v.x * v.x + v.y * v.y // squared
     if (dist >= maxDist) {
       maxDist = dist
@@ -316,14 +295,14 @@ const getSegmentsPathData = (segments: Segment[], closed: unknown, precision: nu
   const parts: string[] = []
 
   const addSegment = (segment: Segment, skipLine?: boolean) => {
-    const curX = segment._point.x
-    const curY = segment._point.y
+    const curX = segment.p.x
+    const curY = segment.p.y
     if (first) {
       parts.push('M' + formatPair(curX, curY))
       first = false
     } else {
-      const inX = curX + (segment._handleIn?.x ?? 0)
-      const inY = curY + (segment._handleIn?.y ?? 0)
+      const inX = curX + (segment.i?.x ?? 0)
+      const inY = curY + (segment.i?.y ?? 0)
       if (inX === curX && inY === curY && outX === prevX && outY === prevY) {
         // l = relative lineto:
         if (!skipLine) {
@@ -345,8 +324,8 @@ const getSegmentsPathData = (segments: Segment[], closed: unknown, precision: nu
     }
     prevX = curX
     prevY = curY
-    outX = curX + (segment._handleOut?.x ?? 0)
-    outY = curY + (segment._handleOut?.y ?? 0)
+    outX = curX + (segment.o?.x ?? 0)
+    outY = curY + (segment.o?.y ?? 0)
   }
 
   if (!length) return ''
@@ -361,7 +340,7 @@ const getSegmentsPathData = (segments: Segment[], closed: unknown, precision: nu
 }
 
 const simplifySvgPath = (
-  points: readonly (readonly [number, number])[] | { readonly x: number; readonly y: number }[],
+  points: readonly (readonly [number, number])[] | readonly Point[],
   options: { closed?: boolean; tolerance?: number; precision?: number } = {},
 ) => {
   if (points.length === 0) {
@@ -369,9 +348,7 @@ const simplifySvgPath = (
   }
   return getSegmentsPathData(
     fit(
-      points.map(
-        typeof (points[0] as { readonly x: number }).x === 'number' ? (p: any) => new Point(p.x, p.y) : (p: any) => new Point(p[0], p[1]),
-      ),
+      points.map(typeof (points[0] as { readonly x: number }).x === 'number' ? (p: any) => point(p.x, p.y) : (p: any) => point(p[0], p[1])),
       options.closed,
       options.tolerance ?? 2.5,
     ),

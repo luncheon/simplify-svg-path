@@ -7,13 +7,12 @@
   "files": [
     "index.js",
     "index.d.ts",
-    "index.iife.min.js",
-    "index.min.js"
+    "index.iife.js"
   ],
   "type": "module",
-  "main": "index.min.js",
-  "jsdelivr": "index.iife.min.js",
-  "unpkg": "index.iife.min.js",
+  "main": "index.js",
+  "jsdelivr": "index.iife.js",
+  "unpkg": "index.iife.js",
   "keywords": [
     "paper",
     "paper.js",
@@ -29,7 +28,7 @@
     "arrowParens": "avoid"
   },
   "scripts": {
-    "build": "tsc -p . && terser -c -m --module --mangle-props regex=/^_/ -o index.min.js index.js && node build-iife.js && npm t",
+    "build": "tsc -p . && node build-iife.js && npm t",
     "test": "node test.js"
   },
   "devDependencies": {

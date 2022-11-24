@@ -1,6 +1,6 @@
 import assert from 'assert'
 import Paper from 'paper'
-import simplifySvgPath from './index.min.js'
+import simplifySvgPath from './index.js'
 
 new Paper.Project()
 

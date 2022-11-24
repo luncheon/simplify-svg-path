@@ -1,4 +1,4 @@
-/*
+var simplifySvgPath=(()=>{/*
  * simplify-svg-path
  *
  * The logic is a copy of Paper.js v0.12.11.
@@ -287,4 +287,5 @@ const simplifySvgPath = (points, options = {}) => {
     }
     return getSegmentsPathData(fit(points.map(typeof points[0].x === 'number' ? (p) => point(p.x, p.y) : (p) => point(p[0], p[1])), options.closed, options.tolerance ?? 2.5), options.closed, options.precision ?? 5);
 };
-export default simplifySvgPath;
+return simplifySvgPath;
+})()
