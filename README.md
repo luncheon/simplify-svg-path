@@ -34,6 +34,7 @@ const path = simplifySvgPath(points);
 simplifySvgPath(
   points: [x: number, y: number][], // `{ x: number, y: number }[]` is also acceptable
   {
+    closed: boolean = false,
     tolerance: number = 2.5,
     precision: number = 5,
   } = {}
